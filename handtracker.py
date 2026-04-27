@@ -107,6 +107,7 @@ def hand_depth(detector):
             x, y = coord
             depth_value = depth_frame[y, x]  # value in millimeters
             is_touching_table = is_touching(depth_value, table_depth, tolerance)
+            print(f"Depth at fingertip: {depth_value} mm, Table depth: {table_depth} mm, Touching: {is_touching_table}")
 
             # Draw a circle at the detected fingertip position
             cv.circle(depth_vis, coord, 10, (0, 255, 0), -1)
