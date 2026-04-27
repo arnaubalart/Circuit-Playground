@@ -80,16 +80,18 @@ def init_mediapipe_hand_tracker():
     )
     return vision.HandLandmarker.create_from_options(options)
 
-def is_touching(finger_depth, table_depth, tolerance):
-    return abs(finger_depth - table_depth) <= tolerance
+def is_touching(finger_y, tolerance):
+    if finger_y > 279-tolerance:
+        return True
+    return False
 
 def hand_depth(detector):
     table_depth = 0
-    tolerance = 4
+    tolerance = 5
 
     while True:
         # Fetch frames from Kinect
-        depth_frame, _ = freenect.sync_get_depth()  # Initialize depth stream
+        depth_frame, _ = freenect.sync_get_depth(format=freenect.DEPTH_REGISTERED)
         vid_frame, _ = freenect.sync_get_video()  # Initialize color stream
 
         if depth_frame is None or vid_frame is None:
@@ -106,14 +108,16 @@ def hand_depth(detector):
         if coord is not None:
             x, y = coord
             depth_value = depth_frame[y, x]  # value in millimeters
-            is_touching_table = is_touching(depth_value, table_depth, tolerance)
-            print(f"Depth at fingertip: {depth_value} mm, Table depth: {table_depth} mm, Touching: {is_touching_table}")
+            is_touching_table = is_touching(y, tolerance)
+            print(f"y: {y}, x: {x},touching table: {is_touching_table}")
 
             # Draw a circle at the detected fingertip position
-            cv.circle(depth_vis, coord, 10, (0, 255, 0), -1)
+            cv.circle(vid_frame, coord, 10, (0, 255, 0), -1)
+
+
 
         # Dislpay the resulting frame
-        cv.imshow('Hand Tracker', depth_vis)
+        cv.imshow('Hand Tracker', vid_frame)
 
         if cv.waitKey(1) & 0xFF == ord('q'):
             break
